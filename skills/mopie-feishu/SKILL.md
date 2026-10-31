@@ -9,6 +9,8 @@ description: 为 Mopie 新建并接入飞书通知。用户说「配置飞书」
 
 每台 Mopie 新建一个飞书应用。一个应用只能保持一条长连接。`open_id` 只属于创建它的应用，别的应用的号不能填进来。
 
+开始前读 [配置步骤](references/setup.md)。接口、解密和报错读 [接口与排错](references/api.md)。
+
 ## 先拿到这两项
 
 1. Mopie 的完整地址，必须包含协议、主机和端口，例如 `http://主机:5174`。没给端口就问，不要猜。
@@ -16,50 +18,14 @@ description: 为 Mopie 新建并接入飞书通知。用户说「配置飞书」
 
 这台 Mopie 还没有「配置飞书」这个用途时，改为让用户在通知页面填写 App ID 和 App Secret，再点「检查并保存」。
 
-## 配置
+## 步骤
 
-### 1. 准备命令行
+1. 在用户自己的电脑上安装飞书命令行。已经安装就跳过。
+2. 新建名为 `mopie` 的飞书应用，把确认链接发给用户。
+3. 用户确认后，把 App ID 和 App Secret 写入这台 Mopie。
+4. 让用户在 10 分钟内私聊新机器人，只发送「绑定」，然后再点「测试」。
 
-命令行装在用户自己的电脑上：
-
-```bash
-npx @larksuite/cli@latest install
-lark-cli --version
-```
-
-已经安装就不要重复安装。
-
-### 2. 新建应用
-
-先用 `lark-cli profile list` 看这台电脑是否已经创建过飞书应用。已有应用不能复用，看不出它们连着哪一台 Mopie。
-
-```bash
-mkdir -p /tmp/mopie-feishu
-lark-cli config init --new --name mopie --lang zh_cn > /tmp/mopie-feishu/init.log 2>&1
-```
-
-应用名称固定是 `mopie`。`--name` 必须带上，否则会替换这台电脑当前的飞书配置。
-
-把日志里的 `https://open.feishu.cn/page/cli?user_code=...` 发给用户。确认码只用一次，命令中断后重新执行并使用新链接。
-
-用户确认后，日志出现 `OK: 应用配置成功` 和新的 App ID。用 `lark-cli --profile mopie auth status` 核对，机器人身份应为 `ready`。不要打印 App Secret。
-
-### 3. 写入这台 Mopie
-
-只发送新应用的 App ID 和 App Secret：
-
-```bash
-curl -sS -X POST "$MOPIE_URL/api/notifications/channels/feishu/setup" \
-  -H "Authorization: Bearer $MOPIE_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"飞书","app_id":"APP_ID","app_secret":"APP_SECRET"}'
-```
-
-成功后渠道已保存，交互机器人已打开，绑定窗口为 10 分钟。密钥和 App Secret 不要写进回复、文档或日志。
-
-### 4. 绑定接收人
-
-让用户在 10 分钟内私聊刚创建的机器人，只发送「绑定」。成功后再点「测试」。窗口过期就再点一次「检查并保存」，然后马上发送「绑定」。
+命令、返回值检查和失败后的处理都在 `references/setup.md`。
 
 ## 不要做
 
